@@ -40,6 +40,7 @@ export default async function HomePage() {
           priority
           sizes="100vw"
           className="object-cover"
+          unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/70 to-stone-950/30" />
         <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-28 sm:px-6 sm:pb-20">

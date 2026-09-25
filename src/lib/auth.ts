@@ -3,35 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
 import { AdminUser } from "@/models";
+import { authConfig } from "@/lib/auth.config";
 import type { AdminRole } from "@/types";
 
-declare module "next-auth" {
-  interface User {
-    role?: AdminRole;
-  }
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name?: string | null;
-      role: AdminRole;
-    };
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id?: string;
-    role?: AdminRole;
-  }
-}
-
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  trustHost: true,
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-  },
+  ...authConfig,
   providers: [
     Credentials({
       name: "credentials",
@@ -58,9 +34,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const role = user.role as AdminRole;
 
-        // Enforce portal: admin page = SUPER_ADMIN only, sales page = SALES_REP only
+        // Admin portal: SUPER_ADMIN only
         if (portal === "admin" && role !== "SUPER_ADMIN") return null;
-        if (portal === "sales" && role !== "SALES_REP") return null;
+        // Sales portal: sales + admin (middleware may bounce admins here)
+        if (
+          portal === "sales" &&
+          role !== "SALES_REP" &&
+          role !== "SUPER_ADMIN"
+        ) {
+          return null;
+        }
 
         return {
           id: String(user._id),
@@ -71,23 +54,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.sub = user.id;
-        token.role = user.role;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = (token.id || token.sub) as string;
-        session.user.role = (token.role as AdminRole) || "SALES_REP";
-      }
-      return session;
-    },
-  },
 });
 
 export async function requireAdmin() {

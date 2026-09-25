@@ -1,7 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
@@ -14,7 +14,6 @@ export function StaffLoginForm({
   allowedRole: AdminRole;
   title: string;
 }) {
-  const router = useRouter();
   const params = useSearchParams();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,32 +24,37 @@ export function StaffLoginForm({
     setLoading(true);
     setError("");
     const form = new FormData(e.currentTarget);
-
-    const res = await signIn("credentials", {
-      email: String(form.get("email") || ""),
-      password: String(form.get("password") || ""),
-      portal: allowedRole === "SUPER_ADMIN" ? "admin" : "sales",
-      redirect: false,
-    });
-
-    if (res?.error) {
-      setLoading(false);
-      if (allowedRole === "SUPER_ADMIN") {
-        setError(
-          "Login failed. Use admin credentials here, or sales staff use /login."
-        );
-      } else {
-        setError(
-          "Login failed. Use sales credentials here, or admins use /login/admin."
-        );
-      }
-      return;
-    }
-
     const callback = params.get("callbackUrl") || "/admin";
-    router.push(callback);
-    router.refresh();
-    setLoading(false);
+
+    try {
+      const res = await signIn("credentials", {
+        email: String(form.get("email") || ""),
+        password: String(form.get("password") || ""),
+        portal: allowedRole === "SUPER_ADMIN" ? "admin" : "sales",
+        redirect: false,
+        callbackUrl: callback,
+      });
+
+      if (!res || res.error || res.ok === false) {
+        if (allowedRole === "SUPER_ADMIN") {
+          setError(
+            "Login failed. Use admin credentials here, or sales staff use /login."
+          );
+        } else {
+          setError(
+            "Login failed. Check email/password. Admins can also sign in here."
+          );
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Full reload so the session cookie is attached before /admin middleware runs
+      window.location.assign(callback);
+    } catch {
+      setError("Login failed. Please try again.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -84,12 +88,31 @@ export function StaffLoginForm({
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
-              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M3 3l18 18M10.6 10.7a2 2 0 002.8 2.8M9.9 5.1A10.5 10.5 0 0121 12c-.7 1.2-1.6 2.3-2.6 3.2M6.1 6.1C4.5 7.4 3.2 9.1 2.3 12c1.8 5 6.2 8 9.7 8 1.5 0 3-.4 4.3-1.1" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                viewBox="0 0 24 24"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path
+                  d="M3 3l18 18M10.6 10.7a2 2 0 002.8 2.8M9.9 5.1A10.5 10.5 0 0121 12c-.7 1.2-1.6 2.3-2.6 3.2M6.1 6.1C4.5 7.4 3.2 9.1 2.3 12c1.8 5 6.2 8 9.7 8 1.5 0 3-.4 4.3-1.1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             ) : (
-              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M2.3 12C4.1 7 8.5 4 12 4s7.9 3 9.7 8c-1.8 5-6.2 8-9.7 8s-7.9-3-9.7-8z" strokeLinejoin="round" />
+              <svg
+                viewBox="0 0 24 24"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+              >
+                <path
+                  d="M2.3 12C4.1 7 8.5 4 12 4s7.9 3 9.7 8c-1.8 5-6.2 8-9.7 8s-7.9-3-9.7-8z"
+                  strokeLinejoin="round"
+                />
                 <circle cx="12" cy="12" r="3" />
               </svg>
             )}

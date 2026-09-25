@@ -21,9 +21,9 @@ export default function SalesLoginPage() {
         </Suspense>
       </div>
       <p className="mt-6 text-center text-xs text-stone-500">
-        Admin?{" "}
+        Prefer the admin page?{" "}
         <Link href="/login/admin" className="text-amber-400 hover:underline">
-          Use admin login
+          Admin sign in
         </Link>
       </p>
     </div>

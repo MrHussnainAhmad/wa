@@ -52,16 +52,20 @@ export default async function BoardDetailPage({
           },
         ];
 
+  const heroSrc = optimizedImageUrl(photos[0].url, { width: 1600 });
+  const heroUnoptimized = heroSrc.includes("images.unsplash.com");
+
   return (
     <div className="pb-16 pt-24">
       <div className="relative h-[50vh] min-h-[280px] w-full overflow-hidden">
         <Image
-          src={optimizedImageUrl(photos[0].url, { width: 1600 })}
+          src={heroSrc}
           alt={board.address}
           fill
           priority
           sizes="100vw"
           className="object-cover"
+          unoptimized={heroUnoptimized}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-stone-950/40" />
       </div>
@@ -139,18 +143,22 @@ export default async function BoardDetailPage({
 
         {photos.length > 1 ? (
           <div className="mt-12 grid gap-3 sm:grid-cols-3">
-            {photos.slice(1).map((p: { url: string }, i: number) => (
-              <div key={i} className="relative aspect-video overflow-hidden">
-                <Image
-                  src={optimizedImageUrl(p.url, { width: 600 })}
-                  alt=""
-                  fill
-                  loading="lazy"
-                  className="object-cover"
-                  sizes="33vw"
-                />
-              </div>
-            ))}
+            {photos.slice(1).map((p: { url: string }, i: number) => {
+              const src = optimizedImageUrl(p.url, { width: 600 });
+              return (
+                <div key={i} className="relative aspect-video overflow-hidden">
+                  <Image
+                    src={src}
+                    alt=""
+                    fill
+                    loading="lazy"
+                    className="object-cover"
+                    sizes="33vw"
+                    unoptimized={src.includes("images.unsplash.com")}
+                  />
+                </div>
+              );
+            })}
           </div>
         ) : null}
       </div>

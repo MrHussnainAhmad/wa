@@ -1,27 +1,26 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { authConfig } from "@/lib/auth.config";
 
-export async function middleware(req: NextRequest) {
+const { auth } = NextAuth(authConfig);
+
+export default auth((req) => {
   const { pathname } = req.nextUrl;
+  const user = req.auth?.user;
+  const isLoggedIn = Boolean(user?.email || user?.id);
 
   if (!pathname.startsWith("/admin")) {
     return NextResponse.next();
   }
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-  });
-
-  const userId = (token?.id || token?.sub) as string | undefined;
-
-  if (!userId) {
-    // Super-admin routes → admin login; everything else → sales login
+  if (!isLoggedIn) {
     const isSuperRoute =
       pathname.startsWith("/admin/settings") ||
       pathname.startsWith("/admin/users");
-    const url = new URL(isSuperRoute ? "/login/admin" : "/login", req.url);
+    const url = new URL(
+      isSuperRoute ? "/login/admin" : "/login",
+      req.nextUrl.origin
+    );
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
@@ -29,13 +28,13 @@ export async function middleware(req: NextRequest) {
   if (
     (pathname.startsWith("/admin/settings") ||
       pathname.startsWith("/admin/users")) &&
-    token?.role !== "SUPER_ADMIN"
+    user?.role !== "SUPER_ADMIN"
   ) {
-    return NextResponse.redirect(new URL("/admin", req.url));
+    return NextResponse.redirect(new URL("/admin", req.nextUrl.origin));
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/admin/:path*"],

@@ -22,6 +22,9 @@ export function BoardCard({ board }: { board: BoardCardData }) {
     board.photoUrl ||
     "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80";
 
+  const src = optimizedImageUrl(img, { width: 800 });
+  const isUnsplash = src.includes("images.unsplash.com");
+
   return (
     <Link
       href={`/boards/${board.id}`}
@@ -29,12 +32,13 @@ export function BoardCard({ board }: { board: BoardCardData }) {
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-stone-800">
         <Image
-          src={optimizedImageUrl(img, { width: 800 })}
+          src={src}
           alt={`${board.city} billboard`}
           fill
           sizes="(max-width: 768px) 100vw, 33vw"
           className="object-cover transition duration-500 group-hover:scale-105"
           loading="lazy"
+          unoptimized={isUnsplash}
         />
         <div className="absolute left-3 top-3">
           <StatusBadge status={board.status} />
