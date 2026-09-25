@@ -1,11 +1,15 @@
 import dns from "dns";
+import os from "os";
 import mongoose from "mongoose";
 
-// Windows / some ISP resolvers refuse MongoDB SRV lookups
-try {
-  dns.setServers(["8.8.8.8", "1.1.1.1"]);
-} catch {
-  /* ignore */
+// Local Windows / some ISP resolvers refuse MongoDB SRV lookups.
+// Do not override DNS on Vercel — it slows cold connects.
+if (os.platform() === "win32") {
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1"]);
+  } catch {
+    /* ignore */
+  }
 }
 
 interface MongooseCache {
@@ -36,9 +40,21 @@ export async function connectDB() {
   if (!cached.promise) {
     cached.promise = mongoose.connect(uri, {
       bufferCommands: false,
+      // IPv6-first lookups often stall ~10s before falling back to IPv4
+      family: 4,
+      maxPoolSize: 5,
+      minPoolSize: 0,
+      serverSelectionTimeoutMS: 8000,
+      socketTimeoutMS: 20000,
+      connectTimeoutMS: 8000,
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    throw err;
+  }
   return cached.conn;
 }

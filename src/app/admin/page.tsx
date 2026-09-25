@@ -2,9 +2,10 @@ import Link from "next/link";
 import { addDays, subHours } from "date-fns";
 import { connectDB } from "@/lib/db";
 import { Board, Booking, Lead } from "@/models";
+import { Setting } from "@/models/Setting";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatMoney, whatsappLink } from "@/lib/utils";
-import { getSettings } from "@/lib/settings";
+import { DEFAULT_SETTINGS } from "@/lib/settings";
 import { BRAND } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
@@ -18,31 +19,32 @@ export default async function AdminDashboard() {
   const in14 = addDays(todayStart, 14);
   const olderThan48h = subHours(new Date(), 48);
 
-  const [
-    leadsToday,
-    endingSoon,
-    boardCount,
-    availableCount,
-    bookedCount,
-    openLeads,
-    staleLeads,
-    settings,
-  ] = await Promise.all([
-    Lead.countDocuments({ createdAt: { $gte: todayStart, $lte: todayEnd } }),
-    Booking.find({ endDate: { $gte: todayStart, $lte: in14 } })
-      .populate("boardId")
-      .sort({ endDate: 1 })
-      .lean(),
-    Board.countDocuments(),
-    Board.countDocuments({ status: "AVAILABLE" }),
-    Board.countDocuments({ status: "BOOKED" }),
-    Lead.countDocuments({ status: { $in: ["NEW", "CONTACTED"] } }),
-    Lead.find({ status: "NEW", createdAt: { $lte: olderThan48h } })
-      .sort({ createdAt: 1 })
-      .limit(8)
-      .lean(),
-    getSettings(),
-  ]);
+  const [leadsToday, endingSoon, boardStats, openLeads, staleLeads, setting] =
+    await Promise.all([
+      Lead.countDocuments({ createdAt: { $gte: todayStart, $lte: todayEnd } }),
+      Booking.find({ endDate: { $gte: todayStart, $lte: in14 } })
+        .select("clientName endDate depositStatus agreedPrice boardId")
+        .populate("boardId", "city address")
+        .sort({ endDate: 1 })
+        .limit(20)
+        .lean(),
+      Board.aggregate<{ _id: string | null; count: number }>([
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
+      Lead.countDocuments({ status: { $in: ["NEW", "CONTACTED"] } }),
+      Lead.find({ status: "NEW", createdAt: { $lte: olderThan48h } })
+        .select("name phone cityInterested")
+        .sort({ createdAt: 1 })
+        .limit(8)
+        .lean(),
+      Setting.findOne({ key: "app" }).select("currency").lean(),
+    ]);
+
+  const boardCount = boardStats.reduce((s, r) => s + r.count, 0);
+  const availableCount =
+    boardStats.find((r) => r._id === "AVAILABLE")?.count ?? 0;
+  const bookedCount = boardStats.find((r) => r._id === "BOOKED")?.count ?? 0;
+  const currency = setting?.currency || DEFAULT_SETTINGS.currency;
 
   return (
     <div className="space-y-8">
@@ -163,7 +165,7 @@ export default async function AdminDashboard() {
                         <StatusBadge status={b.depositStatus} />
                       </td>
                       <td className="px-3 py-2">
-                        {formatMoney(b.agreedPrice, settings.currency)}
+                        {formatMoney(b.agreedPrice, currency)}
                       </td>
                     </tr>
                   );

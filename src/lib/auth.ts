@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { connectDB } from "@/lib/db";
-import { AdminUser } from "@/models";
+import { AdminUser } from "@/models/AdminUser";
 import { authConfig } from "@/lib/auth.config";
 import type { AdminRole } from "@/types";
 
@@ -26,7 +26,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null;
 
         await connectDB();
-        const user = await AdminUser.findOne({ email });
+        const user = await AdminUser.findOne({ email })
+          .select("email passwordHash role name")
+          .lean();
         if (!user) return null;
 
         const valid = await bcrypt.compare(password, user.passwordHash);
@@ -34,9 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const role = user.role as AdminRole;
 
-        // Admin portal: SUPER_ADMIN only
         if (portal === "admin" && role !== "SUPER_ADMIN") return null;
-        // Sales portal: sales + admin (middleware may bounce admins here)
         if (
           portal === "sales" &&
           role !== "SALES_REP" &&
