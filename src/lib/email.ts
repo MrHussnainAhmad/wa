@@ -30,7 +30,11 @@ async function send(input: {
 
   if (error) {
     console.error("[email:error]", error);
-    throw new Error(error.message);
+    throw new Error(
+      typeof error === "object" && error && "message" in error
+        ? String((error as { message: string }).message)
+        : "Resend send failed"
+    );
   }
 
   return data;
