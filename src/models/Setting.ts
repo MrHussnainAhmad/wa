@@ -14,6 +14,27 @@ const SettingSchema = new Schema(
       type: Schema.Types.Mixed,
       default: { static: 1, digital: 1.15 },
     },
+
+    // WhatsApp Cloud API
+    waApiEnabled: { type: Boolean, default: false },
+    waAccessToken: { type: String, default: "" },
+    waPhoneNumberId: { type: String, default: "" },
+    waApiVersion: { type: String, default: "v21.0" },
+
+    // Safe automation (admin-controlled)
+    waAutoEnabled: { type: Boolean, default: false },
+    waAutoDelayMinutes: { type: Number, default: 30 },
+    waAutoMaxPerRun: { type: Number, default: 3 },
+    waAutoMaxPerDay: { type: Number, default: 40 },
+    waAutoMinSecondsBetween: { type: Number, default: 20 },
+    waTemplateName: { type: String, default: "" },
+    waTemplateLanguage: { type: String, default: "en" },
+    /** Human preview / notes. Template body params use name, city, source in order. */
+    waMessageNote: {
+      type: String,
+      default:
+        "Hi {{name}}, thanks for contacting Waqas Advertisers about {{city}}. We'll follow up shortly.",
+    },
   },
   { timestamps: true }
 );

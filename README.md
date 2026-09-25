@@ -33,10 +33,18 @@ Uses **email** (Resend, if `RESEND_API_KEY` is set) + **normal WhatsApp links** 
 2. Quote/contact forms → optional **Continue on WhatsApp** (opens chat to your company number from Settings).
 3. Admin Leads / Dashboard → **WhatsApp this lead** buttons.
 4. Daily cron syncs board availability + emails ending-soon bookings, new leads, and stale NEW leads.
+5. Optional WhatsApp Cloud API automation (admin Settings): queues follow-ups with delay + rate limits; process via `/api/cron/whatsapp-queue`.
 
 Schedule free at [cron-job.org](https://cron-job.org) (daily):
 
 ```
 GET https://YOUR_DOMAIN/api/cron/daily-ops
+Header: x-cron-secret: YOUR_CRON_SECRET
+```
+
+WhatsApp queue (every 10–15 minutes, only if enabled in Settings):
+
+```
+GET https://YOUR_DOMAIN/api/cron/whatsapp-queue
 Header: x-cron-secret: YOUR_CRON_SECRET
 ```

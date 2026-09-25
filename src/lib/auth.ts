@@ -38,12 +38,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        portal: { label: "Portal", type: "text" },
       },
       async authorize(credentials) {
         const email = String(credentials?.email ?? "")
           .toLowerCase()
           .trim();
         const password = String(credentials?.password ?? "");
+        const portal = String(credentials?.portal ?? "sales");
 
         if (!email || !password) return null;
 
@@ -54,11 +56,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
+        const role = user.role as AdminRole;
+
+        // Enforce portal: admin page = SUPER_ADMIN only, sales page = SALES_REP only
+        if (portal === "admin" && role !== "SUPER_ADMIN") return null;
+        if (portal === "sales" && role !== "SALES_REP") return null;
+
         return {
           id: String(user._id),
           email: user.email,
           name: user.name || user.email,
-          role: user.role as AdminRole,
+          role,
         };
       },
     }),
@@ -67,13 +75,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.sub = user.id;
         token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id as string;
+        session.user.id = (token.id || token.sub) as string;
         session.user.role = (token.role as AdminRole) || "SALES_REP";
       }
       return session;

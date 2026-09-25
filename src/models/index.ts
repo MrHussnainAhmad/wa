@@ -6,3 +6,5 @@ export { Faq } from "./Faq";
 export { AdminUser } from "./AdminUser";
 export { Setting } from "./Setting";
 export { AuditLog } from "./AuditLog";
+export { WhatsAppOutbox } from "./WhatsAppOutbox";
+

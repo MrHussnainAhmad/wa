@@ -14,8 +14,14 @@ export async function middleware(req: NextRequest) {
     secret: process.env.AUTH_SECRET,
   });
 
-  if (!token?.id) {
-    const url = new URL("/login", req.url);
+  const userId = (token?.id || token?.sub) as string | undefined;
+
+  if (!userId) {
+    // Super-admin routes → admin login; everything else → sales login
+    const isSuperRoute =
+      pathname.startsWith("/admin/settings") ||
+      pathname.startsWith("/admin/users");
+    const url = new URL(isSuperRoute ? "/login/admin" : "/login", req.url);
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
@@ -23,7 +29,7 @@ export async function middleware(req: NextRequest) {
   if (
     (pathname.startsWith("/admin/settings") ||
       pathname.startsWith("/admin/users")) &&
-    token.role !== "SUPER_ADMIN"
+    token?.role !== "SUPER_ADMIN"
   ) {
     return NextResponse.redirect(new URL("/admin", req.url));
   }

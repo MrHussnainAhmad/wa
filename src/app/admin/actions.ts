@@ -264,6 +264,27 @@ export async function updateSettings(formData: FormData) {
     digital: Number(formData.get("type_digital") || 1.15),
   };
 
+  const existing = await Setting.findOne({ key: "app" });
+  const tokenInput = String(formData.get("waAccessToken") || "").trim();
+  const waAccessToken = tokenInput || existing?.waAccessToken || "";
+
+  const waAutoDelayMinutes = Math.max(
+    5,
+    Math.min(24 * 60, Number(formData.get("waAutoDelayMinutes") || 30))
+  );
+  const waAutoMaxPerRun = Math.max(
+    1,
+    Math.min(5, Number(formData.get("waAutoMaxPerRun") || 3))
+  );
+  const waAutoMaxPerDay = Math.max(
+    1,
+    Math.min(100, Number(formData.get("waAutoMaxPerDay") || 40))
+  );
+  const waAutoMinSecondsBetween = Math.max(
+    15,
+    Math.min(300, Number(formData.get("waAutoMinSecondsBetween") || 20))
+  );
+
   await Setting.findOneAndUpdate(
     { key: "app" },
     {
@@ -273,6 +294,18 @@ export async function updateSettings(formData: FormData) {
       whatsappNumber: String(formData.get("whatsappNumber")),
       durationMultipliers,
       typeMultipliers,
+      waApiEnabled: formData.get("waApiEnabled") === "on",
+      waAccessToken,
+      waPhoneNumberId: String(formData.get("waPhoneNumberId") || "").trim(),
+      waApiVersion: String(formData.get("waApiVersion") || "v21.0").trim(),
+      waAutoEnabled: formData.get("waAutoEnabled") === "on",
+      waAutoDelayMinutes,
+      waAutoMaxPerRun,
+      waAutoMaxPerDay,
+      waAutoMinSecondsBetween,
+      waTemplateName: String(formData.get("waTemplateName") || "").trim(),
+      waTemplateLanguage: String(formData.get("waTemplateLanguage") || "en").trim(),
+      waMessageNote: String(formData.get("waMessageNote") || "").trim(),
     },
     { upsert: true, setDefaultsOnInsert: true }
   );
@@ -283,6 +316,11 @@ export async function updateSettings(formData: FormData) {
     action: "UPDATE",
     entityType: "Setting",
     entityId: "app",
+    meta: {
+      waApiEnabled: formData.get("waApiEnabled") === "on",
+      waAutoEnabled: formData.get("waAutoEnabled") === "on",
+      tokenUpdated: Boolean(tokenInput),
+    },
   });
 
   revalidatePath("/admin/settings");

@@ -7,6 +7,7 @@ import { notifyNewLead } from "@/lib/email";
 import { calculateQuote } from "@/lib/pricing";
 import { getSettings } from "@/lib/settings";
 import { Board } from "@/models";
+import { enqueueLeadWhatsApp } from "@/lib/whatsapp";
 
 const schema = z.object({
   source: z.enum(["QUOTE", "CONTACT"]),
@@ -80,6 +81,19 @@ export async function POST(req: Request) {
       quoteTotal,
       quoteMonths,
     });
+
+    // Safe queue only — never send immediately / never burst
+    try {
+      await enqueueLeadWhatsApp({
+        leadId: String(lead._id),
+        phone: lead.phone,
+        name: lead.name,
+        city: lead.cityInterested,
+        source: lead.source,
+      });
+    } catch (e) {
+      console.error("[lead:whatsapp-enqueue]", e);
+    }
 
     return NextResponse.json({ ok: true, id: String(lead._id) });
   } catch (error) {
