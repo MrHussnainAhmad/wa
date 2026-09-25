@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Waqas Advertisers
 
-## Getting Started
+Outdoor advertising marketplace for [waqasadvertisers](https://waqasadvertisers.com) — public site + admin panel.
 
-First, run the development server:
+## Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js 16 (App Router)
+- MongoDB + Mongoose
+- Auth.js (credentials sessions)
+- Cloudinary (optional)
+- Resend (optional)
+
+## Setup
+
+1. Copy `.env.example` → `.env` and set `MONGODB_URI`
+2. `npm install`
+3. `npm run seed`
+4. `npm run dev`
+
+### Seed accounts
+
+- Super admin: `admin@waqasadvertisers.com` / `admin123`
+- Sales: `sales@waqasadvertisers.com` / `sales123`
+
+- Admin login: `/login/admin`
+- Sales login: `/login`
+
+## Automation (no AI / no WhatsApp Business API)
+
+Uses **email** (Resend, if `RESEND_API_KEY` is set) + **normal WhatsApp links** (`wa.me`).
+
+1. New lead → email to `ADMIN_NOTIFY_EMAIL` with a one-click WhatsApp link to that lead.
+2. Quote/contact forms → optional **Continue on WhatsApp** (opens chat to your company number from Settings).
+3. Admin Leads / Dashboard → **WhatsApp this lead** buttons.
+4. Daily cron syncs board availability + emails ending-soon bookings, new leads, and stale NEW leads.
+
+Schedule free at [cron-job.org](https://cron-job.org) (daily):
+
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+GET https://YOUR_DOMAIN/api/cron/daily-ops
+Header: x-cron-secret: YOUR_CRON_SECRET
+```
