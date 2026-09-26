@@ -1,8 +1,9 @@
 "use client";
 
-import { signIn } from "next-auth/react";
+import { useActionState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { staffLogin, type LoginState } from "@/app/login/actions";
 import { Button } from "@/components/ui/Button";
 import { Input, Label } from "@/components/ui/Input";
 import type { AdminRole } from "@/types";
@@ -15,50 +16,22 @@ export function StaffLoginForm({
   title: string;
 }) {
   const params = useSearchParams();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [state, action, pending] = useActionState<LoginState, FormData>(
+    staffLogin,
+    null
+  );
 
-  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const form = new FormData(e.currentTarget);
-    const callback = params.get("callbackUrl") || "/admin";
-
-    try {
-      const res = await signIn("credentials", {
-        email: String(form.get("email") || ""),
-        password: String(form.get("password") || ""),
-        portal: allowedRole === "SUPER_ADMIN" ? "admin" : "sales",
-        redirect: false,
-        callbackUrl: callback,
-      });
-
-      if (!res || res.error || res.ok === false) {
-        if (allowedRole === "SUPER_ADMIN") {
-          setError(
-            "Login failed. Use admin credentials here, or sales staff use /login."
-          );
-        } else {
-          setError(
-            "Login failed. Check email/password. Admins can also sign in here."
-          );
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Full reload so the session cookie is attached before /admin middleware runs
-      window.location.assign(callback);
-    } catch {
-      setError("Login failed. Please try again.");
-      setLoading(false);
-    }
-  }
+  const callbackUrl = useMemo(
+    () => params.get("callbackUrl") || "/admin",
+    [params]
+  );
+  const portal = allowedRole === "SUPER_ADMIN" ? "admin" : "sales";
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto w-full max-w-sm space-y-4">
+    <form action={action} className="mx-auto w-full max-w-sm space-y-4">
+      <input type="hidden" name="portal" value={portal} />
+      <input type="hidden" name="callbackUrl" value={callbackUrl} />
       <p className="text-center text-sm text-stone-400">{title}</p>
       <div>
         <Label htmlFor="email">Email</Label>
@@ -119,9 +92,11 @@ export function StaffLoginForm({
           </button>
         </div>
       </div>
-      {error ? <p className="text-sm text-red-400">{error}</p> : null}
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Signing in…" : "Sign in"}
+      {state?.error ? (
+        <p className="text-sm text-red-400">{state.error}</p>
+      ) : null}
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>
   );

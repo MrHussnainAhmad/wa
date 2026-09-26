@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { addDays, subHours } from "date-fns";
 import { connectDB } from "@/lib/db";
@@ -10,7 +11,24 @@ import { BRAND } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboard() {
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-8 animate-pulse">
+      <div>
+        <div className="h-10 w-48 bg-stone-800" />
+        <div className="mt-2 h-4 w-72 bg-stone-900" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-24 border border-stone-800 bg-stone-900/40" />
+        ))}
+      </div>
+      <div className="h-40 border border-stone-800 bg-stone-900/40" />
+    </div>
+  );
+}
+
+async function DashboardData() {
   await connectDB();
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -176,5 +194,13 @@ export default async function AdminDashboard() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <DashboardData />
+    </Suspense>
   );
 }
