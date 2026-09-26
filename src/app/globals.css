@@ -20,6 +20,22 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
 }
 
+/* Hide default scrollbars; scrolling still works */
+html,
+body,
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Legacy Edge/IE */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0;
+  height: 0;
+}
+
 ::selection {
   background: #f59e0b;
   color: #0c0a09;

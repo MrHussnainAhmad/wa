@@ -74,10 +74,10 @@ export default async function BoardDetailPage({
         <div className="-mt-16 relative grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div>
             <StatusBadge status={board.status} />
-            <h1 className="mt-3 font-[family-name:var(--font-display)] text-5xl text-white sm:text-6xl">
+            <h1 className="mt-3 font-[family-name:var(--font-display)] text-4xl text-white sm:text-6xl">
               {board.city}
             </h1>
-            <p className="mt-2 text-lg text-stone-300">{board.address}</p>
+            <p className="mt-2 text-base text-stone-300 sm:text-lg">{board.address}</p>
             <dl className="mt-8 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
               <div>
                 <dt className="text-stone-500">Type</dt>

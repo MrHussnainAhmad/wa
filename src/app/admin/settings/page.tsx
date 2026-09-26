@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
+import QRCode from "qrcode";
 import { auth } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
+import { getSiteUrl } from "@/lib/site";
 import { updateSettings } from "@/app/admin/actions";
+import { SiteQrCard } from "@/components/admin/SiteQrCard";
 import { Button } from "@/components/ui/Button";
 import { Input, Label, Textarea } from "@/components/ui/Input";
 
@@ -14,6 +17,13 @@ export default async function SettingsPage() {
   const settings = await getSettings();
   const d = settings.durationMultipliers;
   const t = settings.typeMultipliers;
+  const siteUrl = getSiteUrl();
+  const qrDataUrl = await QRCode.toDataURL(siteUrl, {
+    width: 360,
+    margin: 2,
+    errorCorrectionLevel: "M",
+    color: { dark: "#1c1917", light: "#ffffff" },
+  });
 
   return (
     <div className="space-y-6">
@@ -22,9 +32,11 @@ export default async function SettingsPage() {
           Settings
         </h1>
         <p className="mt-1 text-sm text-stone-400">
-          Company defaults, rates, and safe WhatsApp automation.
+          Company defaults, rates, website QR, and safe WhatsApp automation.
         </p>
       </header>
+
+      <SiteQrCard siteUrl={siteUrl} qrDataUrl={qrDataUrl} />
 
       <form
         action={async (fd) => {

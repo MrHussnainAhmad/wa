@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
 import { whatsappLink } from "@/lib/utils";
 
@@ -14,11 +17,41 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
+const NAV = [
+  { href: "/boards", label: "Boards" },
+  { href: "/quote", label: "Quote" },
+  { href: "/contact", label: "Contact" },
+] as const;
+
 export function SiteHeader({ whatsapp }: { whatsapp?: string }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const waHref = whatsapp
+    ? whatsappLink(whatsapp, `Hi ${BRAND.name} — I want to book a board.`)
+    : null;
+
   return (
     <header className="absolute inset-x-0 top-0 z-40">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
-        <Link href="/" className="block leading-none text-white">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
+        <Link
+          href="/"
+          className="relative z-50 block min-w-0 leading-none text-white"
+          onClick={() => setOpen(false)}
+        >
           <span className="block font-[family-name:var(--font-display)] text-2xl leading-none tracking-wide sm:text-3xl">
             Waqas
           </span>
@@ -26,25 +59,98 @@ export function SiteHeader({ whatsapp }: { whatsapp?: string }) {
             Advertisers
           </span>
         </Link>
-        <nav className="flex items-center gap-4 text-sm text-stone-200 sm:gap-6">
-          <Link href="/boards" className="hover:text-amber-400">
-            Boards
-          </Link>
-          <Link href="/quote" className="hidden hover:text-amber-400 sm:inline">
-            Quote
-          </Link>
-          <Link href="/contact" className="hover:text-amber-400">
-            Contact
-          </Link>
-          {whatsapp ? (
+
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {NAV.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="px-3 py-2 text-sm text-stone-200 transition hover:text-amber-400"
+            >
+              {item.label}
+            </Link>
+          ))}
+          {waHref ? (
             <a
-              href={whatsappLink(
-                whatsapp,
-                `Hi ${BRAND.name} — I want to book a board.`
-              )}
+              href={waHref}
               target="_blank"
               rel="noreferrer"
-              className="bg-amber-500 px-3 py-1.5 font-semibold text-stone-950 hover:bg-amber-400"
+              className="ml-2 bg-amber-500 px-4 py-2.5 text-sm font-semibold text-stone-950 transition hover:bg-amber-400"
+            >
+              WhatsApp
+            </a>
+          ) : null}
+        </nav>
+
+        {/* Mobile menu button */}
+        <button
+          type="button"
+          className="relative z-50 flex size-11 items-center justify-center border border-stone-600/80 bg-stone-950/50 text-white md:hidden"
+          aria-expanded={open}
+          aria-controls="mobile-nav"
+          aria-label={open ? "Close menu" : "Open menu"}
+          onClick={() => setOpen((v) => !v)}
+        >
+          <span className="sr-only">{open ? "Close" : "Menu"}</span>
+          <span className="flex w-5 flex-col gap-1.5">
+            <span
+              className={`h-0.5 w-full bg-current transition ${
+                open ? "translate-y-2 rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-full bg-current transition ${
+                open ? "opacity-0" : ""
+              }`}
+            />
+            <span
+              className={`h-0.5 w-full bg-current transition ${
+                open ? "-translate-y-2 -rotate-45" : ""
+              }`}
+            />
+          </span>
+        </button>
+      </div>
+
+      {/* Mobile panel */}
+      <div
+        id="mobile-nav"
+        className={`fixed inset-0 z-40 md:hidden ${open ? "" : "pointer-events-none"}`}
+      >
+        <button
+          type="button"
+          aria-label="Close menu overlay"
+          className={`absolute inset-0 bg-stone-950/80 transition-opacity ${
+            open ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setOpen(false)}
+        />
+        <nav
+          className={`absolute inset-x-0 top-0 border-b border-stone-800 bg-stone-950 px-4 pb-6 pt-20 shadow-xl transition-transform duration-200 sm:px-6 ${
+            open ? "translate-y-0" : "-translate-y-full"
+          }`}
+        >
+          <ul className="space-y-1">
+            {NAV.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className="block px-2 py-3.5 text-lg text-stone-100 hover:text-amber-400"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {waHref ? (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setOpen(false)}
+              className="mt-4 flex min-h-12 items-center justify-center bg-amber-500 px-4 text-base font-semibold text-stone-950 hover:bg-amber-400"
             >
               WhatsApp
             </a>
@@ -58,19 +164,29 @@ export function SiteHeader({ whatsapp }: { whatsapp?: string }) {
 export function SiteFooter({ whatsapp }: { whatsapp?: string }) {
   return (
     <footer className="border-t border-stone-800 bg-stone-950">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div>
           <p className="font-[family-name:var(--font-display)] text-xl text-white">
             {BRAND.name}
           </p>
           <p className="mt-1 text-sm text-stone-400">{BRAND.tagline}</p>
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-stone-300">
-          <Link href="/boards">Boards</Link>
-          <Link href="/quote">Quote</Link>
-          <Link href="/contact">Contact</Link>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
+        <div className="flex flex-wrap items-center gap-1 text-sm text-stone-300">
+          {[
+            { href: "/boards", label: "Boards" },
+            { href: "/quote", label: "Quote" },
+            { href: "/contact", label: "Contact" },
+            { href: "/privacy", label: "Privacy" },
+            { href: "/terms", label: "Terms" },
+          ].map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className="px-3 py-2.5 hover:text-amber-400"
+            >
+              {l.label}
+            </Link>
+          ))}
           {whatsapp ? (
             <a
               href={whatsappLink(whatsapp)}
@@ -78,9 +194,9 @@ export function SiteFooter({ whatsapp }: { whatsapp?: string }) {
               rel="noreferrer"
               aria-label="WhatsApp"
               title="WhatsApp"
-              className="inline-flex items-center text-stone-300 hover:text-[#25D366]"
+              className="inline-flex size-11 items-center justify-center text-stone-300 hover:text-[#25D366]"
             >
-              <WhatsAppIcon />
+              <WhatsAppIcon className="size-6 fill-current" />
             </a>
           ) : null}
         </div>

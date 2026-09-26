@@ -30,8 +30,8 @@ export default async function BoardsPage({
   ]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pb-16 pt-28 sm:px-6">
-      <h1 className="font-[family-name:var(--font-display)] text-5xl text-white sm:text-6xl">
+    <div className="mx-auto max-w-6xl px-4 pb-16 pt-24 sm:pt-28 sm:px-6">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl text-white sm:text-6xl">
         Boards
       </h1>
       <p className="mt-2 text-stone-400">

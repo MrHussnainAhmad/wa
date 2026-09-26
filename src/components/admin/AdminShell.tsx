@@ -29,6 +29,19 @@ export function AdminShell({
     if (saved === "1") setCollapsed(true);
   }, []);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
   function toggleCollapsed() {
     setCollapsed((v) => {
       const next = !v;
@@ -61,7 +74,7 @@ export function AdminShell({
               href={l.href}
               title={l.label}
               onClick={() => setMobileOpen(false)}
-              className={`block truncate px-2.5 py-2 transition ${
+              className={`block truncate px-3 py-3 transition sm:px-2.5 sm:py-2 ${
                 active
                   ? "bg-amber-500/15 text-amber-400"
                   : "text-stone-300 hover:bg-stone-800 hover:text-white"
@@ -83,7 +96,9 @@ export function AdminShell({
             collapsed ? "w-14" : "w-52"
           }`}
         >
-          <div className={`border-b border-stone-800 ${collapsed ? "p-2" : "px-3 py-3"}`}>
+          <div
+            className={`border-b border-stone-800 ${collapsed ? "p-2" : "px-3 py-3"}`}
+          >
             <div className="flex items-center justify-between gap-2">
               {!collapsed ? (
                 <Link
@@ -103,7 +118,7 @@ export function AdminShell({
               <button
                 type="button"
                 onClick={toggleCollapsed}
-                className="shrink-0 border border-stone-700 px-1.5 py-0.5 text-xs text-stone-400 hover:text-white"
+                className="flex size-8 shrink-0 items-center justify-center border border-stone-700 text-xs text-stone-400 hover:text-white"
                 aria-label={collapsed ? "Expand menu" : "Collapse menu"}
               >
                 {collapsed ? "»" : "«"}
@@ -122,7 +137,7 @@ export function AdminShell({
             <form action={signOutAction}>
               <button
                 type="submit"
-                className={`w-full py-2 text-left text-sm text-stone-400 hover:text-white ${
+                className={`w-full py-2.5 text-left text-sm text-stone-400 hover:text-white ${
                   collapsed ? "text-center text-xs" : "px-2"
                 }`}
                 title="Sign out"
@@ -134,30 +149,79 @@ export function AdminShell({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-3 border-b border-stone-800 px-3 py-2.5 md:px-4">
-            <div className="flex items-center gap-2 md:hidden">
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-stone-800 bg-stone-950/95 px-3 py-2.5 backdrop-blur md:px-4">
+            <div className="flex min-w-0 items-center gap-2 md:hidden">
               <button
                 type="button"
                 onClick={() => setMobileOpen((v) => !v)}
-                className="border border-stone-700 px-2 py-1 text-sm text-stone-200"
+                className="flex size-11 shrink-0 items-center justify-center border border-stone-700 text-stone-100"
+                aria-expanded={mobileOpen}
+                aria-label={mobileOpen ? "Close menu" : "Open menu"}
               >
-                Menu
+                <span className="flex w-5 flex-col gap-1.5">
+                  <span
+                    className={`h-0.5 w-full bg-current transition ${
+                      mobileOpen ? "translate-y-2 rotate-45" : ""
+                    }`}
+                  />
+                  <span
+                    className={`h-0.5 w-full bg-current transition ${
+                      mobileOpen ? "opacity-0" : ""
+                    }`}
+                  />
+                  <span
+                    className={`h-0.5 w-full bg-current transition ${
+                      mobileOpen ? "-translate-y-2 -rotate-45" : ""
+                    }`}
+                  />
+                </span>
               </button>
-              <span className="font-[family-name:var(--font-display)] text-lg text-amber-400">
+              <span className="truncate font-[family-name:var(--font-display)] text-lg text-amber-400">
                 Waqas
               </span>
             </div>
-            <p className="ml-auto truncate text-xs text-stone-500">{email}</p>
+            <p className="ml-auto max-w-[55%] truncate text-xs text-stone-500 sm:max-w-none">
+              {email}
+            </p>
           </header>
 
           {mobileOpen ? (
-            <div className="border-b border-stone-800 p-2 md:hidden">
-              <NavLinks />
-              <form action={signOutAction} className="mt-2 px-2">
-                <button type="submit" className="text-sm text-stone-400">
-                  Sign out
-                </button>
-              </form>
+            <div className="fixed inset-0 z-40 md:hidden">
+              <button
+                type="button"
+                aria-label="Close menu overlay"
+                className="absolute inset-0 bg-stone-950/70"
+                onClick={() => setMobileOpen(false)}
+              />
+              <div className="absolute inset-y-0 left-0 flex w-[min(18rem,85vw)] flex-col border-r border-stone-800 bg-stone-950 shadow-xl">
+                <div className="flex items-center justify-between border-b border-stone-800 px-3 py-3">
+                  <span className="font-[family-name:var(--font-display)] text-lg text-amber-400">
+                    Menu
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex size-10 items-center justify-center border border-stone-700 text-stone-300"
+                    aria-label="Close menu"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-2">
+                  <NavLinks />
+                </div>
+                <div className="border-t border-stone-800 p-3">
+                  <p className="mb-2 truncate text-xs text-stone-500">{email}</p>
+                  <form action={signOutAction}>
+                    <button
+                      type="submit"
+                      className="w-full border border-stone-700 px-3 py-3 text-left text-sm text-stone-300"
+                    >
+                      Sign out
+                    </button>
+                  </form>
+                </div>
+              </div>
             </div>
           ) : null}
 

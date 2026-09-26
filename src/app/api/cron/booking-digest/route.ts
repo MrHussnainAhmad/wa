@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
 import { addDays, differenceInCalendarDays, format } from "date-fns";
 import { connectDB } from "@/lib/db";
+import { assertCronAuthorized } from "@/lib/cron-auth";
 import { Booking } from "@/models";
 import { sendBookingDigest } from "@/lib/email";
 
 /** Legacy endpoint — prefer /api/cron/daily-ops */
 export async function GET(req: Request) {
-  const secret = req.headers.get("x-cron-secret");
-  if (!secret || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = assertCronAuthorized(req);
+  if (denied) return denied;
 
   await connectDB();
   const today = new Date();

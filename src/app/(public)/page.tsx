@@ -32,7 +32,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative min-h-[92vh] overflow-hidden">
+      <section className="relative min-h-[min(92vh,900px)] overflow-hidden">
         <Image
           src="https://images.unsplash.com/photo-1514565131-fce0801e5785?w=1800&q=80"
           alt="City night billboards"
@@ -43,19 +43,21 @@ export default async function HomePage() {
           unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/70 to-stone-950/30" />
-        <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-28 sm:px-6 sm:pb-20">
-          <p className="font-[family-name:var(--font-display)] text-5xl leading-none tracking-wide text-white sm:text-7xl md:text-8xl">
+        <div className="relative mx-auto flex min-h-[min(92vh,900px)] max-w-6xl flex-col justify-end px-4 pb-12 pt-24 sm:px-6 sm:pb-20 sm:pt-28">
+          <p className="font-[family-name:var(--font-display)] text-4xl leading-[0.95] tracking-wide text-white sm:text-7xl md:text-8xl">
             {BRAND.name}
           </p>
-          <h1 className="mt-4 max-w-xl text-xl text-stone-200 sm:text-2xl">
+          <h1 className="mt-3 max-w-xl text-base text-stone-200 sm:mt-4 sm:text-2xl">
             {BRAND.tagline}
           </h1>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/boards">
-              <Button size="lg">Browse boards</Button>
+          <div className="mt-6 flex w-full flex-col gap-3 sm:mt-8 sm:w-auto sm:flex-row sm:flex-wrap">
+            <Link href="/boards" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto">
+                Browse boards
+              </Button>
             </Link>
-            <Link href="/quote">
-              <Button size="lg" variant="secondary">
+            <Link href="/quote" className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full sm:w-auto">
                 Get a quote
               </Button>
             </Link>
@@ -65,9 +67,9 @@ export default async function HomePage() {
       </section>
 
       <section className="border-y border-stone-800 bg-stone-900/40">
-        <div className="mx-auto grid max-w-6xl grid-cols-3 gap-4 px-4 py-10 text-center sm:px-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 text-center sm:grid-cols-3 sm:gap-4 sm:px-6 sm:py-10">
           <div>
-            <p className="font-[family-name:var(--font-display)] text-4xl text-amber-400 sm:text-5xl">
+            <p className="font-[family-name:var(--font-display)] text-3xl text-amber-400 sm:text-5xl">
               {totalBoards}
             </p>
             <p className="mt-1 text-xs uppercase tracking-wider text-stone-400 sm:text-sm">
@@ -75,7 +77,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div>
-            <p className="font-[family-name:var(--font-display)] text-4xl text-amber-400 sm:text-5xl">
+            <p className="font-[family-name:var(--font-display)] text-3xl text-amber-400 sm:text-5xl">
               {cities.length}
             </p>
             <p className="mt-1 text-xs uppercase tracking-wider text-stone-400 sm:text-sm">
@@ -83,7 +85,7 @@ export default async function HomePage() {
             </p>
           </div>
           <div>
-            <p className="font-[family-name:var(--font-display)] text-4xl text-amber-400 sm:text-5xl">
+            <p className="font-[family-name:var(--font-display)] text-3xl text-amber-400 sm:text-5xl">
               {formatTraffic(avgTraffic)}
             </p>
             <p className="mt-1 text-xs uppercase tracking-wider text-stone-400 sm:text-sm">
@@ -93,15 +95,20 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="mb-8 flex items-end justify-between gap-4">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mb-6 flex flex-col gap-2 sm:mb-8 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div>
-            <h2 className="font-[family-name:var(--font-display)] text-4xl text-white sm:text-5xl">
+            <h2 className="font-[family-name:var(--font-display)] text-3xl text-white sm:text-5xl">
               Featured boards
             </h2>
-            <p className="mt-2 text-stone-400">Live inventory from the database.</p>
+            <p className="mt-2 text-sm text-stone-400 sm:text-base">
+              Live inventory from the database.
+            </p>
           </div>
-          <Link href="/boards" className="text-sm text-amber-400 hover:underline">
+          <Link
+            href="/boards"
+            className="text-sm text-amber-400 hover:underline sm:shrink-0"
+          >
             View all
           </Link>
         </div>
@@ -126,12 +133,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="bg-stone-900/30 py-16">
+      <section className="bg-stone-900/30 py-12 sm:py-16">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="font-[family-name:var(--font-display)] text-4xl text-white sm:text-5xl">
+          <h2 className="font-[family-name:var(--font-display)] text-3xl text-white sm:text-5xl">
             Clients on the street
           </h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-3">
+          <div className="mt-6 grid gap-6 sm:mt-8 md:grid-cols-3">
             {testimonials.map((t) => (
               <blockquote
                 key={String(t._id)}
@@ -147,11 +154,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <h2 className="font-[family-name:var(--font-display)] text-4xl text-white sm:text-5xl">
+      <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <h2 className="font-[family-name:var(--font-display)] text-3xl text-white sm:text-5xl">
           FAQ
         </h2>
-        <div className="mt-8 space-y-4">
+        <div className="mt-6 space-y-4 sm:mt-8">
           {faqs.map((f) => (
             <details
               key={String(f._id)}
